@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Transactions;
 using Dapper;
 using Hangfire.MySql.JobQueue;
 using MySql.Data.MySqlClient;
@@ -8,7 +7,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests.JobQueue
 {
-    public class MySqlJobQueueMonitoringApiTests : IClassFixture<TestDatabaseFixture>, IDisposable
+    public class MySqlJobQueueMonitoringApiTests : DatabaseTestFixture, IDisposable
     {
         private readonly MySqlJobQueueMonitoringApi _sut;
         private readonly MySqlStorage _storage;
@@ -31,11 +30,11 @@ namespace Hangfire.MySql.Tests.JobQueue
             _storage.Dispose();
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetEnqueuedAndFetchedCount_ReturnsEqueuedCount_WhenExists()
         {
             EnqueuedAndFetchedCountDto result = null;
-            
+
             _storage.UseConnection(connection =>
             {
                 connection.Execute(
@@ -51,7 +50,7 @@ namespace Hangfire.MySql.Tests.JobQueue
         }
 
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetEnqueuedJobIds_ReturnsEmptyCollection_IfQueueIsEmpty()
         {
             var result = _sut.GetEnqueuedJobIds(_queue, 5, 15);
@@ -59,7 +58,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             Assert.Empty(result);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetEnqueuedJobIds_ReturnsCorrectResult()
         {
             int[] result = null;
@@ -69,14 +68,14 @@ namespace Hangfire.MySql.Tests.JobQueue
                 {
                     connection.Execute(
                         "insert into JobQueue (JobId, Queue) " +
-                        "values (@jobId, @queue);", new {jobId = i, queue = _queue});
+                        "values (@jobId, @queue);", new { jobId = i, queue = _queue });
                 }
 
                 result = _sut.GetEnqueuedJobIds(_queue, 3, 2).ToArray();
 
                 connection.Execute("delete from JobQueue");
             });
-            
+
             Assert.Equal(2, result.Length);
             Assert.Equal(4, result[0]);
             Assert.Equal(5, result[1]);

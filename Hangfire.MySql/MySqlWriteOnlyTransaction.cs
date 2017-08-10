@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Transactions;
 using Dapper;
 using Hangfire.Common;
 using Hangfire.Logging;
@@ -344,8 +343,6 @@ where lst.Key = @key
         {
             _storage.UseTransaction(connection =>
             {
-                connection.EnlistTransaction(Transaction.Current);
-
                 foreach (var command in _commandQueue)
                 {
                     command(connection);

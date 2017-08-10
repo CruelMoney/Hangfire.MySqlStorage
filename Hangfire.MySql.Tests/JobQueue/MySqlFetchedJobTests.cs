@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests.JobQueue
 {
-    public class MySqlFetchedJobTests : IClassFixture<TestDatabaseFixture>
+    public class MySqlFetchedJobTests : DatabaseTestFixture
     {
         private const int JobId = 1;
         private const string Queue = "queue";
@@ -19,7 +19,7 @@ namespace Hangfire.MySql.Tests.JobQueue
 
         public MySqlFetchedJobTests()
         {
-            _fetchedJob = new FetchedJob(){Id = _id, JobId = JobId, Queue = Queue};
+            _fetchedJob = new FetchedJob() { Id = _id, JobId = JobId, Queue = Queue };
             _connection = new Mock<IDbConnection>();
             var options = new MySqlStorageOptions { PrepareSchemaIfNecessary = false };
             _storage = new Mock<MySqlStorage>(ConnectionUtils.GetConnectionString(), options);
@@ -42,7 +42,7 @@ namespace Hangfire.MySql.Tests.JobQueue
 
             Assert.Equal("connection", exception.ParamName);
         }
-        
+
         [Fact]
         public void Ctor_CorrectlySets_AllInstanceProperties()
         {
@@ -55,7 +55,7 @@ namespace Hangfire.MySql.Tests.JobQueue
         private MySqlFetchedJob CreateFetchedJob(int jobId, string queue)
         {
             return new MySqlFetchedJob(_storage.Object, _connection.Object,
-                new FetchedJob() {JobId = jobId, Queue = queue, Id = _id});
+                new FetchedJob() { JobId = jobId, Queue = queue, Id = _id });
         }
     }
 }

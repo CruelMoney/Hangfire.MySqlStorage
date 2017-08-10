@@ -5,18 +5,18 @@ using MySql.Data.MySqlClient;
 
 namespace Hangfire.MySql.Tests
 {
-    public class TestDatabaseFixture : IDisposable
+    public class DatabaseTestFixture : IDisposable
     {
-        private static readonly object GlobalLock = new object();
-        public TestDatabaseFixture()
+        //private static readonly object GlobalLock = new object();
+        public DatabaseTestFixture()
         {
-            Monitor.Enter(GlobalLock);
+            //Monitor.Enter(GlobalLock);
             CreateAndInitializeDatabase();
         }
         public void Dispose()
         {
             DropDatabase();
-            Monitor.Exit(GlobalLock);
+            //Monitor.Exit(GlobalLock);
         }
 
         private static void CreateAndInitializeDatabase()

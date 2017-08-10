@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests
 {
-    public class MySqlWriteOnlyTransactionTests : IClassFixture<TestDatabaseFixture>
+    public class MySqlWriteOnlyTransactionTests : DatabaseTestFixture
     {
         private readonly PersistentJobQueueProviderCollection _queueProviders;
 
@@ -33,7 +33,7 @@ namespace Hangfire.MySql.Tests
             Assert.Equal("storage", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireJob_SetsJobExpirationData()
         {
             const string arrangeSql = @"
@@ -56,7 +56,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistJob_ClearsTheJobExpirationData()
         {
             const string arrangeSql = @"
@@ -79,7 +79,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void SetJobState_AppendsAStateAndSetItToTheJob()
         {
             const string arrangeSql = @"
@@ -117,7 +117,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddJobState_JustAddsANewRecordInATable()
         {
             const string arrangeSql = @"
@@ -150,7 +150,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToQueue_CallsEnqueue_OnTargetPersistentQueue()
         {
             var correctJobQueue = new Mock<IPersistentJobQueue>();
@@ -175,7 +175,7 @@ select last_insert_id() as Id";
                 .Single();
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void IncrementCounter_AddsRecordToCounterTable_WithPositiveValue()
         {
             UseConnection(sql =>
@@ -183,14 +183,14 @@ select last_insert_id() as Id";
                 Commit(sql, x => x.IncrementCounter("my-key"));
 
                 var record = sql.Query("select * from Counter").Single();
-                
+
                 Assert.Equal("my-key", record.Key);
                 Assert.Equal(1, record.Value);
                 Assert.Equal((DateTime?)null, record.ExpireAt);
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void IncrementCounter_WithExpiry_AddsARecord_WithExpirationTimeSet()
         {
             UseConnection(sql =>
@@ -203,14 +203,14 @@ select last_insert_id() as Id";
                 Assert.Equal(1, record.Value);
                 Assert.NotNull(record.ExpireAt);
 
-                var expireAt = (DateTime) record.ExpireAt;
+                var expireAt = (DateTime)record.ExpireAt;
 
                 Assert.True(DateTime.UtcNow.AddHours(23) < expireAt);
                 Assert.True(expireAt < DateTime.UtcNow.AddHours(25));
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void IncrementCounter_WithExistingKey_AddsAnotherRecord()
         {
             UseConnection(sql =>
@@ -222,12 +222,12 @@ select last_insert_id() as Id";
                 });
 
                 var recordCount = sql.Query<int>("select count(*) from Counter").Single();
-                
+
                 Assert.Equal(2, recordCount);
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void DecrementCounter_AddsRecordToCounterTable_WithNegativeValue()
         {
             UseConnection(sql =>
@@ -242,7 +242,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void DecrementCounter_WithExpiry_AddsARecord_WithExpirationTimeSet()
         {
             UseConnection(sql =>
@@ -262,7 +262,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void DecrementCounter_WithExistingKey_AddsAnotherRecord()
         {
             UseConnection(sql =>
@@ -279,7 +279,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToSet_AddsARecord_IfThereIsNo_SuchKeyAndValue()
         {
             UseConnection(sql =>
@@ -294,7 +294,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToSet_AddsARecord_WhenKeyIsExists_ButValuesAreDifferent()
         {
             UseConnection(sql =>
@@ -311,7 +311,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToSet_DoesNotAddARecord_WhenBothKeyAndValueAreExist()
         {
             UseConnection(sql =>
@@ -323,12 +323,12 @@ select last_insert_id() as Id";
                 });
 
                 var recordCount = sql.Query<int>("select count(*) from `Set`").Single();
-                
+
                 Assert.Equal(1, recordCount);
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToSet_WithScore_AddsARecordWithScore_WhenBothKeyAndValueAreNotExist()
         {
             UseConnection(sql =>
@@ -343,7 +343,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddToSet_WithScore_UpdatesAScore_WhenBothKeyAndValueAreExist()
         {
             UseConnection(sql =>
@@ -360,7 +360,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromSet_RemovesARecord_WithGivenKeyAndValue()
         {
             UseConnection(sql =>
@@ -377,7 +377,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromSet_DoesNotRemoveRecord_WithSameKey_AndDifferentValue()
         {
             UseConnection(sql =>
@@ -394,7 +394,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromSet_DoesNotRemoveRecord_WithSameValue_AndDifferentKey()
         {
             UseConnection(sql =>
@@ -411,7 +411,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void InsertToList_AddsARecord_WithGivenValues()
         {
             UseConnection(sql =>
@@ -425,7 +425,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void InsertToList_AddsAnotherRecord_WhenBothKeyAndValueAreExist()
         {
             UseConnection(sql =>
@@ -442,7 +442,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromList_RemovesAllRecords_WithGivenKeyAndValue()
         {
             UseConnection(sql =>
@@ -460,7 +460,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromList_DoesNotRemoveRecords_WithSameKey_ButDifferentValue()
         {
             UseConnection(sql =>
@@ -477,7 +477,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveFromList_DoesNotRemoveRecords_WithSameValue_ButDifferentKey()
         {
             UseConnection(sql =>
@@ -494,7 +494,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void TrimList_TrimsAList_ToASpecifiedRange()
         {
             UseConnection(sql =>
@@ -516,7 +516,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void TrimList_RemovesRecordsToEnd_IfKeepAndingAt_GreaterThanMaxElementIndex()
         {
             UseConnection(sql =>
@@ -535,7 +535,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void TrimList_RemovesAllRecords_WhenStartingFromValue_GreaterThanMaxElementIndex()
         {
             UseConnection(sql =>
@@ -552,7 +552,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void TrimList_RemovesAllRecords_IfStartFromGreaterThanEndingAt()
         {
             UseConnection(sql =>
@@ -569,7 +569,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void TrimList_RemovesRecords_OnlyOfAGivenKey()
         {
             UseConnection(sql =>
@@ -586,7 +586,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void SetRangeInHash_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -598,7 +598,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void SetRangeInHash_ThrowsAnException_WhenKeyValuePairsArgumentIsNull()
         {
             UseConnection(sql =>
@@ -610,7 +610,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void SetRangeInHash_MergesAllRecords()
         {
             UseConnection(sql =>
@@ -631,7 +631,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveHash_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -641,7 +641,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveHash_RemovesAllHashRecords()
         {
             UseConnection(sql =>
@@ -662,7 +662,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddRangeToSet_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -674,7 +674,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddRangeToSet_ThrowsAnException_WhenItemsValueIsNull()
         {
             UseConnection(sql =>
@@ -686,7 +686,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void AddRangeToSet_AddsAllItems_ToAGivenSet()
         {
             UseConnection(sql =>
@@ -700,7 +700,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveSet_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -710,7 +710,7 @@ select last_insert_id() as Id";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void RemoveSet_RemovesASet_WithAGivenKey()
         {
             const string arrangeSql = @"
@@ -718,7 +718,7 @@ insert into `Set` (`Key`, `Value`, Score) values (@key, @value, 0.0)";
 
             UseConnection(sql =>
             {
-                sql.Execute(arrangeSql, new []
+                sql.Execute(arrangeSql, new[]
                 {
                     new { key = "set-1", value = "1" },
                     new { key = "set-2", value = "1" }
@@ -731,7 +731,7 @@ insert into `Set` (`Key`, `Value`, Score) values (@key, @value, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireHash_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -743,7 +743,7 @@ insert into `Set` (`Key`, `Value`, Score) values (@key, @value, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireHash_SetsExpirationTimeOnAHash_WithGivenKey()
         {
             const string arrangeSql = @"
@@ -770,7 +770,7 @@ values (@key, @field)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireSet_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -782,7 +782,7 @@ values (@key, @field)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireSet_SetsExpirationTime_OnASet_WithGivenKey()
         {
             const string arrangeSql = @"
@@ -809,7 +809,7 @@ values (@key, @value, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireList_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -821,7 +821,7 @@ values (@key, @value, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void ExpireList_SetsExpirationTime_OnAList_WithGivenKey()
         {
             const string arrangeSql = @"
@@ -847,7 +847,7 @@ insert into List (`Key`) values (@key)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistHash_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -859,7 +859,7 @@ insert into List (`Key`) values (@key)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistHash_ClearsExpirationTime_OnAGivenHash()
         {
             const string arrangeSql = @"
@@ -885,7 +885,7 @@ values (@key, @field, @expireAt)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistSet_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -897,7 +897,7 @@ values (@key, @field, @expireAt)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistSet_ClearsExpirationTime_OnAGivenHash()
         {
             const string arrangeSql = @"
@@ -923,7 +923,7 @@ values (@key, @value, @expireAt, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistList_ThrowsAnException_WhenKeyIsNull()
         {
             UseConnection(sql =>
@@ -935,7 +935,7 @@ values (@key, @value, @expireAt, 0.0)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void PersistList_ClearsExpirationTime_OnAGivenHash()
         {
             const string arrangeSql = @"

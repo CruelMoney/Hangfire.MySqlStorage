@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Transactions;
 using Dapper;
 using Hangfire.Annotations;
 using Hangfire.Common;
@@ -11,6 +10,7 @@ using Hangfire.States;
 using Hangfire.Storage;
 using Hangfire.Storage.Monitoring;
 using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace Hangfire.MySql.Monitoring
 {
@@ -428,10 +428,10 @@ select sum(s.`Value`) from (
         private Dictionary<DateTime, long> GetTimelineStats(MySqlConnection connection,
             IDictionary<string, DateTime> keyMaps)
         {
-            var valuesMap = connection.Query(
-                "select `Key`, `Value` as `Count` from AggregatedCounter where `Key` in @keys",
+            var valuesMap = connection.Query<KeyValuePair<string, long>>(
+                "select `Key`, `Value` from AggregatedCounter where `Key` in @keys",
                 new { keys = keyMaps.Keys })
-                .ToDictionary(x => (string)x.Key, x => (long)x.Count);
+                .ToDictionary(x => x.Key, x => x.Value);
 
             foreach (var key in keyMaps.Keys)
             {

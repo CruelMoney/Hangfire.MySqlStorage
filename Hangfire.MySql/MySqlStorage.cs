@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Transactions;
 using Hangfire.Annotations;
 using Hangfire.Logging;
 using Hangfire.MySql.JobQueue;
@@ -12,7 +10,6 @@ using Hangfire.MySql.Monitoring;
 using Hangfire.Server;
 using Hangfire.Storage;
 using MySql.Data.MySqlClient;
-using IsolationLevel = System.Transactions.IsolationLevel;
 
 namespace Hangfire.MySql
 {
@@ -36,23 +33,7 @@ namespace Hangfire.MySql
             if (nameOrConnectionString == null) throw new ArgumentNullException("nameOrConnectionString");
             if (options == null) throw new ArgumentNullException("options");
 
-            if (IsConnectionString(nameOrConnectionString))
-            {
-                _connectionString = ApplyAllowUserVariablesProperty(nameOrConnectionString);
-            }
-            else if (IsConnectionStringInConfiguration(nameOrConnectionString))
-            {
-                _connectionString = 
-                    ApplyAllowUserVariablesProperty(
-                        ConfigurationManager.ConnectionStrings[nameOrConnectionString].ConnectionString);
-            }
-            else
-            {
-                throw new ArgumentException(
-                    string.Format(
-                        "Could not find connection string with name '{0}' in application config file",
-                        nameOrConnectionString));
-            }
+            _connectionString = ApplyAllowUserVariablesProperty(nameOrConnectionString);
             _options = options;
 
             if (options.PrepareSchemaIfNecessary)
@@ -159,18 +140,6 @@ namespace Hangfire.MySql
             return new MySqlStorageConnection(this);
         }
 
-        private bool IsConnectionString(string nameOrConnectionString)
-        {
-            return nameOrConnectionString.Contains(";");
-        }
-
-        private bool IsConnectionStringInConfiguration(string connectionStringName)
-        {
-            var connectionStringSetting = ConfigurationManager.ConnectionStrings[connectionStringName];
-
-            return connectionStringSetting != null;
-        }
-
         internal void UseTransaction([InstantHandle] Action<MySqlConnection> action)
         {
             UseTransaction(connection =>
@@ -183,20 +152,15 @@ namespace Hangfire.MySql
         internal T UseTransaction<T>(
             [InstantHandle] Func<MySqlConnection, T> func, IsolationLevel? isolationLevel)
         {
-            using (var transaction = CreateTransaction(isolationLevel ?? _options.TransactionIsolationLevel))
+            return UseConnection(cn =>
             {
-                var result = UseConnection(func);
-                transaction.Complete();
-
-                return result;
-            }
-        }
-        private TransactionScope CreateTransaction(IsolationLevel? isolationLevel)
-        {
-            return isolationLevel != null
-                ? new TransactionScope(TransactionScopeOption.Required,
-                    new TransactionOptions { IsolationLevel = isolationLevel.Value, Timeout = _options.TransactionTimeout })
-                : new TransactionScope();
+                using (var transaction = cn.BeginTransaction(isolationLevel ?? _options.TransactionIsolationLevel.Value))
+                {
+                    var result = func(cn);
+                    transaction.Commit();
+                    return result;
+                }
+            });
         }
 
         internal void UseConnection([InstantHandle] Action<MySqlConnection> action)

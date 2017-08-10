@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests.JobQueue
 {
-    public class MySqlJobQueueTests : IClassFixture<TestDatabaseFixture>, IDisposable
+    public class MySqlJobQueueTests : DatabaseTestFixture, IDisposable
     {
         private static readonly string[] DefaultQueues = { "default" };
         private readonly MySqlStorage _storage;
@@ -27,7 +27,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             _storage.Dispose();
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Ctor_ThrowsAnException_WhenStorageIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(
@@ -36,7 +36,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             Assert.Equal("storage", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Ctor_ThrowsAnException_WhenOptionsValueIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(
@@ -45,7 +45,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             Assert.Equal("options", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsNull()
         {
             _storage.UseConnection(connection =>
@@ -59,7 +59,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsEmpty()
         {
             _storage.UseConnection(connection =>
@@ -73,7 +73,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ThrowsOperationCanceled_WhenCancellationTokenIsSetAtTheBeginning()
         {
             _storage.UseConnection(connection =>
@@ -87,7 +87,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldWaitIndefinitely_WhenThereAreNoJobs()
         {
             _storage.UseConnection(connection =>
@@ -100,7 +100,7 @@ namespace Hangfire.MySql.Tests.JobQueue
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldFetchAJob_FromTheSpecifiedQueue()
         {
             const string arrangeSql = @"
@@ -127,7 +127,7 @@ select last_insert_id() as Id;";
             });
         }
 
-        [Fact,CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldDeleteAJob()
         {
             const string arrangeSql = @"
@@ -161,7 +161,7 @@ values (last_insert_id(), @queue)";
             });
         }
 
-        [Fact,CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldFetchATimedOutJobs_FromTheSpecifiedQueue()
         {
             const string arrangeSql = @"
@@ -194,7 +194,7 @@ values (last_insert_id(), @queue, @fetchedAt)";
             });
         }
 
-        [Fact,CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldSetFetchedAt_OnlyForTheFetchedJob()
         {
             const string arrangeSql = @"
@@ -231,7 +231,7 @@ values (last_insert_id(), @queue)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldFetchJobs_OnlyFromSpecifiedQueues()
         {
             const string arrangeSql = @"
@@ -256,7 +256,7 @@ values (last_insert_id(), @queue)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Dequeue_ShouldFetchJobs_FromMultipleQueues()
         {
             const string arrangeSql = @"
@@ -293,7 +293,7 @@ values (last_insert_id(), @queue)";
             });
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Enqueue_AddsAJobToTheQueue()
         {
             _storage.UseConnection(connection =>

@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
-using System.Transactions;
 using Xunit;
 
 namespace Hangfire.MySql.Tests
 {
-    public class MySqlStorageTests :  IClassFixture<TestDatabaseFixture>
+    public class MySqlStorageTests : DatabaseTestFixture
     {
         private readonly MySqlStorageOptions _options;
 
@@ -32,7 +31,7 @@ namespace Hangfire.MySql.Tests
             Assert.Equal("options", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void Ctor_CanCreateSqlServerStorage_WithExistingConnection()
         {
             using (var connection = ConnectionUtils.CreateConnection())
@@ -43,7 +42,7 @@ namespace Hangfire.MySql.Tests
             }
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void GetConnection_ReturnsNonNullInstance()
         {
             var storage = CreateStorage();
@@ -53,7 +52,7 @@ namespace Hangfire.MySql.Tests
             }
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void GetComponents_ReturnsAllNeededComponents()
         {
             var storage = CreateStorage();
@@ -64,7 +63,7 @@ namespace Hangfire.MySql.Tests
             Assert.Contains(typeof(ExpirationManager), componentTypes);
         }
 
-        [Fact, CleanDatabase(isolationLevel: IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetMonitoringApi_ReturnsNonNullInstance()
         {
             var storage = CreateStorage();

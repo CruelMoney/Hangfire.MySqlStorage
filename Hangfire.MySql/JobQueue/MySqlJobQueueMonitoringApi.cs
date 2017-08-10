@@ -27,7 +27,7 @@ namespace Hangfire.MySql.JobQueue
                 {
                     var result = _storage.UseConnection(connection =>
                     {
-                        return connection.Query("select distinct(Queue) from JobQueue").Select(x => (string)x.Queue).ToList();
+                        return connection.Query<string>("select distinct(Queue) from JobQueue").ToList();
                     });
 
                     _queuesCache = result;

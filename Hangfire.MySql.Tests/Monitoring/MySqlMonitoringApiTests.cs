@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Transactions;
 using Dapper;
 using Hangfire.MySql.JobQueue;
 using Hangfire.MySql.Monitoring;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests.Monitoring
 {
-    public class MySqlMonitoringApiTests : IClassFixture<TestDatabaseFixture>, IDisposable
+    public class MySqlMonitoringApiTests : DatabaseTestFixture, IDisposable
     {
         private readonly MySqlMonitoringApi _sut;
         private readonly MySqlStorage _storage;
@@ -32,7 +31,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             _connection.Open();
 
             var persistentJobQueueMonitoringApiMock = new Mock<IPersistentJobQueueMonitoringApi>();
-            persistentJobQueueMonitoringApiMock.Setup(m => m.GetQueues()).Returns(new[] {"default"});
+            persistentJobQueueMonitoringApiMock.Setup(m => m.GetQueues()).Returns(new[] { "default" });
 
             var defaultProviderMock = new Mock<IPersistentJobQueueProvider>();
             defaultProviderMock.Setup(m => m.GetJobQueueMonitoringApi())
@@ -53,7 +52,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             _storage.Dispose();
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnEnqueuedCount()
         {
             const int expectedEnqueuedCount = 1;
@@ -71,7 +70,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedEnqueuedCount, result.Enqueued);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnFailedCount()
         {
             const int expectedFailedCount = 2;
@@ -90,7 +89,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedFailedCount, result.Failed);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnProcessingCount()
         {
             const int expectedProcessingCount = 1;
@@ -108,7 +107,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedProcessingCount, result.Processing);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnScheduledCount()
         {
             const int expectedScheduledCount = 3;
@@ -128,7 +127,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedScheduledCount, result.Scheduled);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnQueuesCount()
         {
             const int expectedQueuesCount = 1;
@@ -138,7 +137,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedQueuesCount, result.Queues);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnServersCount()
         {
             const int expectedServersCount = 2;
@@ -157,7 +156,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedServersCount, result.Servers);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnSucceededCount()
         {
             const int expectedStatsSucceededCount = 11;
@@ -177,7 +176,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedStatsSucceededCount, result.Succeeded);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnDeletedCount()
         {
             const int expectedStatsDeletedCount = 7;
@@ -198,11 +197,11 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedStatsDeletedCount, result.Deleted);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void GetStatistics_ShouldReturnRecurringCount()
         {
             const int expectedRecurringCount = 1;
-            
+
             StatisticsDto result = null;
             _storage.UseConnection(connection =>
             {
@@ -216,14 +215,14 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(expectedRecurringCount, result.Recurring);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void JobDetails_ShouldReturnJob()
         {
             JobDetailsDto result = null;
 
             _storage.UseConnection(connection =>
             {
-                var jobId = 
+                var jobId =
                     connection.ExecuteScalar<string>(
                     "insert into Job (CreatedAt,InvocationData,Arguments,ExpireAt) " +
                     "values (@createdAt, @invocationData, @arguments,@expireAt);" +
@@ -237,7 +236,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.NotNull(result.Job);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void JobDetails_ShouldReturnCreatedAtAndExpireAt()
         {
             JobDetailsDto result = null;
@@ -258,13 +257,13 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(_expireAt.ToString("yyyy-MM-dd hh:mm:ss"), result.ExpireAt.Value.ToString("yyyy-MM-dd hh:mm:ss"));
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void JobDetails_ShouldReturnProperties()
         {
             var properties = new Dictionary<string, string>();
             properties["CurrentUICulture"] = "en-US";
             properties["CurrentCulture"] = "lt-LT";
-           
+
             JobDetailsDto result = null;
 
             _storage.UseConnection(connection =>
@@ -287,7 +286,7 @@ namespace Hangfire.MySql.Tests.Monitoring
             Assert.Equal(properties, result.Properties);
         }
 
-        [Fact, CleanDatabase(IsolationLevel.ReadUncommitted)]
+        [Fact]
         public void JobDetails_ShouldReturnHistory()
         {
             const string jobStateName = "Scheduled";
@@ -308,11 +307,11 @@ namespace Hangfire.MySql.Tests.Monitoring
 
                     new
                     {
-                        createdAt = _createdAt, 
-                        invocationData = _invocationData, 
-                        arguments = _arguments, 
-                        expireAt = _expireAt, 
-                        jobStateName, 
+                        createdAt = _createdAt,
+                        invocationData = _invocationData,
+                        arguments = _arguments,
+                        expireAt = _expireAt,
+                        jobStateName,
                         stateData
                     });
 

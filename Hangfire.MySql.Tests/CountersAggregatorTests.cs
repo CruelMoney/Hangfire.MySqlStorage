@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Hangfire.MySql.Tests
 {
-    public class CountersAggregatorTests : IClassFixture<TestDatabaseFixture>, IDisposable
+    public class CountersAggregatorTests : DatabaseTestFixture, IDisposable
     {
         private readonly CountersAggregator _sut;
         private readonly MySqlStorage _storage;
@@ -25,7 +25,7 @@ namespace Hangfire.MySql.Tests
             _storage.Dispose();
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
         public void CountersAggregatorExecutesProperly()
         {
             const string createSql = @"
