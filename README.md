@@ -11,7 +11,7 @@ Install MySQL
 Run the following command in the NuGet Package Manager console to install Hangfire.MySqlStorage:
 
 ```
-Install-Package Hangfire.MySqlStorage
+Install-Package Hangfire.MySqlStorage.MySqlConnector
 ```
 
 ## Usage
