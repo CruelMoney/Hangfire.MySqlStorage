@@ -8,7 +8,7 @@ namespace Hangfire.MySql
 {
     public class MySqlDistributedLock : IDisposable, IComparable
     {
-        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+        private static readonly ILog Logger =  LogProvider.GetLogger(typeof(MySqlStorage));
 
         private readonly string _resource;
         private readonly TimeSpan _timeout;

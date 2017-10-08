@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <Version>1.0.5.1</Version>
     <Authors />
     <Company />
@@ -13,8 +12,7 @@
     <PackageTags>Hangfire MySql Hangfire.MySql MySqlConnector</PackageTags>
     <PackageProjectUrl>https://github.com/nvivo/Hangfire.MySqlStorage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nvivo/Hangfire.MySqlStorage</RepositoryUrl>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssetTargetFallback>$(AssetTargetFallback);dotnet5.6;portable-net45+win8</AssetTargetFallback>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Install.sql" />
@@ -23,11 +21,13 @@
     <EmbeddedResource Include="Install.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.50.2" />
-    <PackageReference Include="Hangfire.Core" Version="1.5.3" />
-    <PackageReference Include="MySqlConnector" Version="0.24.2" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="dapper" Version="1.50.2" />
+    <PackageReference Include="hangfire" Version="1.6.17" />
+    <PackageReference Include="MySqlConnector" Version="0.28.0" />
   </ItemGroup>
 </Project>

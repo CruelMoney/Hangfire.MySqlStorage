@@ -12,7 +12,7 @@ namespace Hangfire.MySql
 {
     internal class MySqlWriteOnlyTransaction : JobStorageTransaction
     {
-        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+        private static readonly ILog Logger = LogProvider.GetLogger(typeof(MySqlStorage));
 
         private readonly MySqlStorage _storage;
 
